@@ -1,16 +1,57 @@
-# mytravaly_task
+# 🏨 MyTravaly Task
 
-A new Flutter project.
+A Flutter-based hotel search and booking prototype application built with clean architecture, BLoC state management, and repository pattern.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🚀 Getting Started
 
-A few resources to get you started if this is your first Flutter project:
+This project serves as a foundation for building scalable and maintainable Flutter apps. It integrates API services, authentication, and modular presentation layers.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🧩 Tech Stack
+
+- **Framework:** Flutter `3.35.2`
+- **Language:** Dart `>=3.0.0`
+- **State Management:** [flutter_bloc](https://pub.dev/packages/flutter_bloc)
+- **Dependency Injection:** MultiBlocProvider
+- **Networking:** `http`
+- **Device Management:** Custom `DeviceService`
+- **Authentication:** Google Sign-In (`firebase_auth`, `google_sign_in`)
+- **PDF Viewing:** `syncfusion_flutter_pdfviewer`
+- **Responsive UI:** `flutter_screenutil`
+- **Logging:** Custom `AppLogger`
+
+---
+
+## ⚙️ Environment Setup
+
+### 1️⃣ Install Flutter
+Ensure Flutter `3.35.2` is installed.
+You can check your Flutter version with:
+
+```bash
+flutter --version
+dart pub global activate fvm
+fvm install 3.35.2
+fvm use
+```
+
+### 2️⃣ Project Configuration
+Create a `.env` file in the root directory with the following environment variables:
+
+```bash
+# .env
+BASE_URL=https://your-api-base-url.com
+```
+
+## ⚙️ Environment Setup
+
+### Install Dependencies
+```bash
+flutter pub get
+
+#if using fvm
+fvm flutter pub get
+```
