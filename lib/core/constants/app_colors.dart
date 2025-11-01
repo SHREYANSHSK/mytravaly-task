@@ -11,4 +11,6 @@ class AppColors {
   static const Color divider = Color(0xFFBDBDBD);
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFFC107);
+  static const Color black = Color(0xFF000000);
+  static const Color white = Color(0xFFFFFFFF);
 }

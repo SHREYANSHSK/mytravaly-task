@@ -9,17 +9,14 @@ class HotelCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const HotelCard({
-    Key? key,
+    super.key,
     required this.property,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),

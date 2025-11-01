@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mytravaly_task/routes/app_routes_name.dart';
+import '../../../core/constants/app_sizes.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../routes/app_routes.dart';
 
 class GoogleSignInPage extends StatelessWidget {
-  const GoogleSignInPage({Key? key}) : super(key: key);
+  const GoogleSignInPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -59,24 +59,24 @@ class GoogleSignInPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      const Text(
+                      Text(
                         AppStrings.appName,
                         style: TextStyle(
-                          fontSize: 36,
+                          fontSize: AppSizes.f36,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: AppSizes.h8),
+                      Text(
                         'Find your perfect stay',
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: AppSizes.f18,
                           color: Colors.white70,
                         ),
                       ),
-                      const SizedBox(height: 60),
+                      SizedBox(height: AppSizes.h60),
                       if (state is AuthLoading)
                         const CircularProgressIndicator(
                           color: Colors.white,
@@ -84,17 +84,17 @@ class GoogleSignInPage extends StatelessWidget {
                         )
                       else
                         _buildGoogleSignInButton(context),
-                      const SizedBox(height: 24),
+                      SizedBox(height: AppSizes.h24),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Demo Mode: Sign in without Google credentials',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: AppSizes.f12,
                             color: Colors.white70,
                           ),
                           textAlign: TextAlign.center,
@@ -118,12 +118,12 @@ class GoogleSignInPage extends StatelessWidget {
       },
       icon: Image.network(
         'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-        height: 24,
+        height: AppSizes.h24,
         errorBuilder: (context, error, stackTrace) => const Icon(Icons.login),
       ),
-      label: const Text(
+      label: Text(
         AppStrings.signInWithGoogle,
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        style: TextStyle(fontSize: AppSizes.f16, fontWeight: FontWeight.w600),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.white,

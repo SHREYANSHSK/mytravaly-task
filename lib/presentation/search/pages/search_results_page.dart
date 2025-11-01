@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/constants/app_sizes.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
 import '../bloc/search_state.dart';
@@ -10,7 +11,7 @@ import '../../../core/widgets/hotel_card.dart';
 class SearchResultsPage extends StatefulWidget {
   final String query;
 
-  const SearchResultsPage({Key? key, required this.query}) : super(key: key);
+  const SearchResultsPage({super.key, required this.query});
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
@@ -47,8 +48,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Text(
                       '${state.properties.length} properties found',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: AppSizes.f18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
                       ),
@@ -79,12 +80,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             size: 80,
             color: AppColors.textSecondary.withOpacity(0.5),
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: AppSizes.h16),
+          Text(
             AppStrings.noResults,
-            style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: AppSizes.f18, color: AppColors.textSecondary),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppSizes.h8),
           Text(
             'Try searching with different keywords',
             style: TextStyle(
@@ -92,7 +93,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               color: AppColors.textSecondary.withOpacity(0.7),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: AppSizes.h24),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back),
@@ -115,22 +116,22 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 80, color: AppColors.error),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: AppSizes.h16),
+            Text(
               AppStrings.errorOccurred,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: AppSizes.f18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSizes.h8),
             Text(
               message,
               style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSizes.h24),
             ElevatedButton.icon(
               onPressed: () {
                 context.read<SearchBloc>().add(SearchHotels(query: widget.query));

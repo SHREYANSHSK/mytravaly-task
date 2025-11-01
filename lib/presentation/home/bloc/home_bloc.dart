@@ -34,14 +34,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       RefreshPopularStays event,
       Emitter<HomeState> emit,
       ) async {
-    // Keep current state while refreshing
     final currentState = state;
 
     try {
       final response = await _repository.getPopularStays();
       emit(HomeLoaded(response.properties));
     } catch (e) {
-      // Restore previous state if refresh fails
       if (currentState is HomeLoaded) {
         emit(currentState);
       } else {

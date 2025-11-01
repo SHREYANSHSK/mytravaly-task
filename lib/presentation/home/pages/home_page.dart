@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mytravaly_task/core/constants/app_sizes.dart';
 import 'package:mytravaly_task/presentation/autocomplete/bloc/autocomplete_boc.dart';
 import 'package:mytravaly_task/routes/app_routes_name.dart';
 import '../bloc/home_bloc.dart';
@@ -135,12 +136,7 @@ class _HomePageState extends State<HomePage> {
             },
           )
               : null,
-          filled: true,
-          fillColor: AppColors.background,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide.none,
-          ),
+
         ),
         onSubmitted: _performSearch,
       ),
@@ -154,12 +150,12 @@ class _HomePageState extends State<HomePage> {
       right: 16,
       child: Material(
         elevation: 8,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppSizes.r12),
         child: Container(
-          constraints: const BoxConstraints(maxHeight: 300),
+          constraints: BoxConstraints(maxHeight: AppSizes.h300),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSizes.r12),
           ),
           child: BlocBuilder<AutocompleteBloc, AutocompleteState>(
             builder: (context, state) {
@@ -235,7 +231,7 @@ class _HomePageState extends State<HomePage> {
             child: Text(
               AppStrings.featuredHotels,
               style: TextStyle(
-                fontSize: 24,
+                fontSize: AppSizes.f24,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
@@ -257,10 +253,10 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 80, color: AppColors.error),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSizes.h16),
             Text(
               message,
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: AppSizes.f16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
