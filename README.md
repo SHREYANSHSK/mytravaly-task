@@ -15,13 +15,8 @@ This project serves as a foundation for building scalable and maintainable Flutt
 - **Framework:** Flutter `3.35.2`
 - **Language:** Dart `>=3.0.0`
 - **State Management:** [flutter_bloc](https://pub.dev/packages/flutter_bloc)
-- **Dependency Injection:** MultiBlocProvider
-- **Networking:** `http`
-- **Device Management:** Custom `DeviceService`
-- **Authentication:** Google Sign-In (`firebase_auth`, `google_sign_in`)
-- **PDF Viewing:** `syncfusion_flutter_pdfviewer`
 - **Responsive UI:** `flutter_screenutil`
-- **Logging:** Custom `AppLogger`
+- **Logging:** Custom `logger`
 
 ---
 
