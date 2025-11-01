@@ -4,6 +4,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:mytravaly_task/core/constants/app_constants.dart';
 import 'package:mytravaly_task/core/constants/app_endpoints.dart';
+import '../../core/utils/app_logger.dart';
 import '../models/device_token_model.dart';
 import '../../core/utils/shared_prefs_helper.dart';
 
@@ -34,30 +35,30 @@ class DeviceService {
       if (Platform.isAndroid) {
         final androidInfo = await deviceInfo.androidInfo;
         return {
-          "deviceModel": androidInfo.model ?? "unknown",
-          "deviceFingerprint": androidInfo.fingerprint ?? "unknown",
-          "deviceBrand": androidInfo.brand ?? "unknown",
-          "deviceId": androidInfo.id ?? "unknown",
-          "deviceName": androidInfo.device ?? "unknown",
-          "deviceManufacturer": androidInfo.manufacturer ?? "unknown",
-          "deviceProduct": androidInfo.product ?? "unknown",
+          "deviceModel": androidInfo.model,
+          "deviceFingerprint": androidInfo.fingerprint,
+          "deviceBrand": androidInfo.brand,
+          "deviceId": androidInfo.id,
+          "deviceName": androidInfo.device,
+          "deviceManufacturer": androidInfo.manufacturer,
+          "deviceProduct": androidInfo.product,
           "deviceSerialNumber": "unknown",
         };
       } else if (Platform.isIOS) {
         final iosInfo = await deviceInfo.iosInfo;
         return {
-          "deviceModel": iosInfo.utsname.machine ?? "unknown",
+          "deviceModel": iosInfo.utsname.machine,
           "deviceFingerprint": iosInfo.identifierForVendor ?? "unknown",
           "deviceBrand": "Apple",
           "deviceId": iosInfo.identifierForVendor ?? "unknown_ios",
-          "deviceName": iosInfo.name ?? "unknown",
+          "deviceName": iosInfo.name,
           "deviceManufacturer": "Apple",
-          "deviceProduct": iosInfo.model ?? "unknown",
+          "deviceProduct": iosInfo.model,
           "deviceSerialNumber": "unknown",
         };
       }
-    } catch (e) {
-      print('Error getting device details: $e');
+    } catch (e,stacktrace) {
+      Log.error('Error getting device details',[e,stacktrace]);
     }
 
     return {
@@ -91,7 +92,7 @@ class DeviceService {
         body: json.encode(payload),
       );
 
-      print('Device Register API Response: ${response.body}');
+      Log.highlight('Device Register API Response: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final jsonData = json.decode(response.body);
@@ -102,14 +103,14 @@ class DeviceService {
         await SharedPrefsHelper.saveVisitorToken(_visitorToken!);
         await SharedPrefsHelper.saveDeviceId(_deviceId!);
 
-        print('✅ Device registered successfully. Visitor Token: $_visitorToken');
+        Log.info('✅ Device registered successfully. Visitor Token: $_visitorToken');
         return true;
       } else {
-        print('❌ Failed to register device: ${response.statusCode}');
+        Log.error('❌ Failed to register device: ${response.statusCode}');
         return false;
       }
-    } catch (e) {
-      print('Error registering device: $e');
+    } catch (e,stacktrace) {
+      Log.error('Error registering device',[e,stacktrace]);
       return false;
     }
   }

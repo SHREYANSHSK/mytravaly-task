@@ -15,7 +15,7 @@ class ApiService {
 
   Map<String, String> get _headers => _deviceService.getHeaders();
 
-  // Popular Stay API (replaces property list)
+  // Popular Stay API
   Future<SearchResponse> getPopularStays({
     int limit = 10,
     String entityType = 'Any',
