@@ -23,7 +23,7 @@ This project serves as a foundation for building scalable and maintainable Flutt
 ## ⚙️ Environment Setup
 
 ### 1️⃣ Install Flutter
-Ensure Flutter `3.35.2` is installed.
+Ensure Flutter `3.35.2` is installed or You can use fvm as well.
 You can check your Flutter version with:
 
 ```bash
@@ -49,4 +49,5 @@ flutter pub get
 
 #if using fvm
 fvm flutter pub get
+
 ```
