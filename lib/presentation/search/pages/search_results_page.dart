@@ -9,8 +9,15 @@ import '../../../core/constants/app_strings.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String query;
+  final String searchType;
+  final String displayText;
 
-  const SearchResultsPage({Key? key, required this.query}) : super(key: key);
+  const SearchResultsPage({
+    super.key,
+    required this.query,
+    this.searchType = 'hotelIdSearch',
+    this.displayText = '',
+  });
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
@@ -22,7 +29,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   @override
   void initState() {
     super.initState();
-    context.read<SearchBloc>().add(SearchHotels(query: widget.query));
+    context.read<SearchBloc>().add(SearchHotels(
+      query: widget.query,
+      searchType: widget.searchType,
+    ));
     _scrollController.addListener(_onScroll);
   }
 
@@ -47,9 +57,13 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final displayTitle = widget.displayText.isNotEmpty
+        ? widget.displayText
+        : widget.query;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Results for "${widget.query}"'),
+        title: Text('Results for "$displayTitle"'),
       ),
       body: BlocBuilder<SearchBloc, SearchState>(
         builder: (context, state) {
@@ -69,7 +83,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             return ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: properties.length + 2, // +1 for header, +1 for loader
+              itemCount: properties.length + 2,
               itemBuilder: (context, index) {
                 if (index == 0) {
                   return _buildHeader(properties.length, hasMore);
@@ -79,7 +93,6 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                   final property = properties[index - 1];
                   return SearchPropertyCard(property: property);
                 } else {
-                  // Show loading indicator at bottom when loading more
                   if (state is SearchLoadingMore || hasMore) {
                     return const Padding(
                       padding: EdgeInsets.all(16.0),
@@ -126,9 +139,8 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               color: AppColors.textPrimary,
             ),
           ),
-          if (hasMore)
+          if (hasMore) ...[
             const SizedBox(height: 4),
-          if (hasMore)
             Row(
               children: [
                 Icon(
@@ -146,6 +158,7 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
                 ),
               ],
             ),
+          ],
         ],
       ),
     );
@@ -179,6 +192,10 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back),
             label: const Text('Go Back'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
@@ -211,10 +228,17 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<SearchBloc>().add(SearchHotels(query: widget.query));
+                context.read<SearchBloc>().add(SearchHotels(
+                  query: widget.query,
+                  searchType: widget.searchType,
+                ));
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),

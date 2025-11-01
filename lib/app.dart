@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mytravaly_task/routes/app_routes_name.dart';
 import 'core/constants/app_sizes.dart';
 import 'core/theme/theme.dart';
+import 'core/utils/app_logger.dart';
 import 'data/repositories/hotel_repository.dart';
 import 'data/services/api_service.dart';
 import 'data/services/device_service.dart';
@@ -35,8 +36,8 @@ class _MyAppState extends State<MyApp> {
     try {
       await _deviceService.initialize();
       setState(() => _isDeviceReady = true);
-    } catch (e) {
-      print('Device initialization failed: $e');
+    } catch (e,stacktrace) {
+      Log.error('Device initialization failed',[e,stacktrace]);
       setState(() => _isDeviceReady = true);
     }
   }

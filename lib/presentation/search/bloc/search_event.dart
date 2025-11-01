@@ -9,6 +9,7 @@ abstract class SearchEvent extends Equatable {
 
 class SearchHotels extends SearchEvent {
   final String query;
+  final String searchType;
   final String? checkIn;
   final String? checkOut;
   final int? rooms;
@@ -17,6 +18,7 @@ class SearchHotels extends SearchEvent {
 
   const SearchHotels({
     required this.query,
+    this.searchType = 'hotelIdSearch',
     this.checkIn,
     this.checkOut,
     this.rooms,
@@ -25,7 +27,9 @@ class SearchHotels extends SearchEvent {
   });
 
   @override
-  List<Object?> get props => [query, checkIn, checkOut, rooms, adults, children];
+  List<Object?> get props => [
+    query, searchType, checkIn, checkOut, rooms, adults, children
+  ];
 }
 
 class LoadMoreSearchResults extends SearchEvent {}

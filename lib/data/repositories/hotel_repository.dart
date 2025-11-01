@@ -31,6 +31,7 @@ class HotelRepository {
 
   Future<SearchResultResponse> searchHotels({
     required String query,
+    String searchType = 'hotelIdSearch',
     String checkIn = '2026-07-11',
     String checkOut = '2026-07-12',
     int rooms = 2,
@@ -41,6 +42,7 @@ class HotelRepository {
   }) async {
     return await _apiService.getSearchResults(
       searchQuery: query,
+      searchType: searchType,
       checkIn: checkIn,
       checkOut: checkOut,
       rooms: rooms,

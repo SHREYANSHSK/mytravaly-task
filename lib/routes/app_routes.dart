@@ -13,9 +13,13 @@ class AppRoutes {
       case AppRoutesName.home:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case AppRoutesName.searchResults:
-        final query = settings.arguments as String;
+        final args = settings.arguments as Map<String, dynamic>;
         return MaterialPageRoute(
-          builder: (_) => SearchResultsPage(query: query),
+          builder: (_) => SearchResultsPage(
+            query: args['query'] as String,
+            searchType: args['searchType'] as String? ?? 'hotelIdSearch',
+            displayText: args['displayText'] as String? ?? '',
+          ),
         );
       default:
         return MaterialPageRoute(

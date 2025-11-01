@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../data/repositories/hotel_repository.dart';
 import 'search_event.dart';
 import 'search_state.dart';
@@ -15,14 +16,16 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
       SearchHotels event,
       Emitter<SearchState> emit,
       ) async {
-    print('=== Searching Hotels ===');
-    print('Query: ${event.query}');
+    Log.debug('=== Searching Hotels ===*/===');
+    Log.info('Query: ${event.query}');
+    Log.info('Search Type: ${event.searchType}');
 
     emit(SearchLoading());
 
     try {
       final response = await _repository.searchHotels(
         query: event.query,
+        searchType: event.searchType,
         checkIn: event.checkIn ?? '2026-07-11',
         checkOut: event.checkOut ?? '2026-07-12',
         rooms: event.rooms ?? 1,
@@ -31,18 +34,19 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
         limit: 5,
       );
 
-      print('Search response: ${response.properties.length} properties');
-      print('Has more: ${response.hasMore}');
-      print('Excluded hotels: ${response.excludedHotels}');
+      Log.info('Search response: ${response.properties.length} properties');
+      Log.info('Has more: ${response.hasMore}');
+      Log.info('Excluded hotels: ${response.excludedHotels}');
 
       emit(SearchLoaded(
         properties: response.properties,
         query: event.query,
+        searchType: event.searchType,
         hasMore: response.hasMore,
         excludedHotels: response.excludedHotels,
       ));
-    } catch (e) {
-      print('Search error: $e');
+    } catch (e,stacktrace) {
+      Log.error('Search error',[e,stacktrace]);
       emit(SearchError(e.toString()));
     }
   }
@@ -54,12 +58,14 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     final currentState = state;
 
     if (currentState is! SearchLoaded || !currentState.hasMore) {
+      Log.debug('Cannot load more: hasMore = ${currentState is SearchLoaded ? currentState.hasMore : false}');
       return;
     }
 
-    print('=== Loading More Results ===');
-    print('Current properties: ${currentState.properties.length}');
-    print('Excluded hotels: ${currentState.excludedHotels}');
+    Log.debug('=== Loading More Results ===');
+    Log.info('Current properties: ${currentState.properties.length}');
+    Log.info('Excluded hotels: ${currentState.excludedHotels}');
+    Log.info('Search type: ${currentState.searchType}');
 
     emit(SearchLoadingMore(
       properties: currentState.properties,
@@ -69,32 +75,35 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     try {
       final response = await _repository.searchHotels(
         query: currentState.query,
+        searchType: currentState.searchType,
         limit: 5,
         excludedHotels: currentState.excludedHotels,
       );
 
-      print('Loaded ${response.properties.length} more properties');
+      Log.info('Loaded ${response.properties.length} more properties');
 
-      // Combine old and new properties
       final allProperties = [
         ...currentState.properties,
         ...response.properties,
       ];
 
-      // Combine excluded hotels
       final allExcluded = <String>{
         ...currentState.excludedHotels,
         ...response.excludedHotels,
-      }.toList(); // Remove duplicates
+      }.toList();
+
+      Log.info('Total properties now: ${allProperties.length}');
+      Log.info('Total excluded: ${allExcluded.length}');
 
       emit(SearchLoaded(
         properties: allProperties,
         query: currentState.query,
+        searchType: currentState.searchType,
         hasMore: response.hasMore,
         excludedHotels: allExcluded,
       ));
-    } catch (e) {
-      print('Load more error: $e');
+    } catch (e, stackTrace) {
+      Log.error('Load more error',[e,stackTrace]);
       emit(SearchError(e.toString()));
     }
   }

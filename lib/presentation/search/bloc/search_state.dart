@@ -15,18 +15,22 @@ class SearchLoading extends SearchState {}
 class SearchLoaded extends SearchState {
   final List<SearchProperty> properties;
   final String query;
+  final String searchType;
   final bool hasMore;
   final List<String> excludedHotels;
 
   const SearchLoaded({
     required this.properties,
     required this.query,
+    required this.searchType,
     required this.hasMore,
     required this.excludedHotels,
   });
 
   @override
-  List<Object?> get props => [properties, query, hasMore, excludedHotels];
+  List<Object?> get props => [
+    properties, query, searchType, hasMore, excludedHotels
+  ];
 }
 
 class SearchLoadingMore extends SearchState {

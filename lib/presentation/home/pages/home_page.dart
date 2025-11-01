@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mytravaly_task/core/constants/app_sizes.dart';
 import 'package:mytravaly_task/presentation/autocomplete/bloc/autocomplete_boc.dart';
 import 'package:mytravaly_task/routes/app_routes_name.dart';
+import '../../../core/utils/app_logger.dart';
+import '../../../data/models/search_suggestion_model.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -67,10 +69,25 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _performSearch(String query) {
+  void _performSearch(SearchSuggestion suggestion) {
     _searchFocusNode.unfocus();
     setState(() => _showSuggestions = false);
-    Navigator.pushNamed(context, AppRoutesName.searchResults, arguments: query);
+
+    // Use the searchArray data from the suggestion
+    final searchType = suggestion.searchArray.type;
+    final query = suggestion.searchArray.query.first;
+
+    Log.debug('Performing search with type: $searchType, query: $query');
+
+    Navigator.pushNamed(
+      context,
+      AppRoutesName.searchResults,
+      arguments: {
+        'query': query,
+        'searchType': searchType,
+        'displayText': suggestion.valueToDisplay,
+      },
+    );
   }
 
   @override
@@ -133,12 +150,36 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               _searchController.clear();
               context.read<AutocompleteBloc>().add(ClearSuggestions());
+              setState(() => _showSuggestions = false);
             },
           )
               : null,
-
+          filled: true,
+          fillColor: AppColors.background,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
         ),
-        onSubmitted: _performSearch,
+        onSubmitted: (value) {
+          if (value.trim().isNotEmpty) {
+            Navigator.pushNamed(
+              context,
+              AppRoutesName.searchResults,
+              arguments: {
+                'query': value.trim(),
+                'searchType': 'hotelIdSearch',
+                'displayText': value.trim(),
+              },
+            );
+            _searchFocusNode.unfocus();
+            setState(() => _showSuggestions = false);
+          }
+        },
       ),
     );
   }
@@ -150,12 +191,12 @@ class _HomePageState extends State<HomePage> {
       right: 16,
       child: Material(
         elevation: 8,
-        borderRadius: BorderRadius.circular(AppSizes.r12),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          constraints: BoxConstraints(maxHeight: AppSizes.h300),
+          constraints: const BoxConstraints(maxHeight: 400),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppSizes.r12),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: BlocBuilder<AutocompleteBloc, AutocompleteState>(
             builder: (context, state) {
@@ -168,7 +209,10 @@ class _HomePageState extends State<HomePage> {
                 if (state.suggestions.isEmpty) {
                   return const Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text('No suggestions found'),
+                    child: Text(
+                      'No suggestions found',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
                   );
                 }
                 return ListView.builder(
@@ -178,14 +222,21 @@ class _HomePageState extends State<HomePage> {
                     final suggestion = state.suggestions[index];
                     return ListTile(
                       leading: Icon(
-                        _getIconForType(suggestion.type),
+                        _getIconForType(suggestion.displayIcon),
                         color: AppColors.primary,
                       ),
-                      title: Text(suggestion.text),
-                      subtitle: suggestion.subtitle != null
-                          ? Text(suggestion.subtitle!)
-                          : null,
-                      onTap: () => _performSearch(suggestion.text),
+                      title: Text(
+                        suggestion.valueToDisplay,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        suggestion.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: AppSizes.f12),
+                      ),
+                      onTap: () => _performSearch(suggestion),
                     );
                   },
                 );
