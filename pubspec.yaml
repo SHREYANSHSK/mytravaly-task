@@ -21,6 +21,7 @@ dependencies:
   device_info_plus: ^12.2.0
   shared_preferences: ^2.5.3
   flutter_screenutil: ^5.9.3
+  logger: ^2.6.2
 
 dev_dependencies:
   flutter_test:

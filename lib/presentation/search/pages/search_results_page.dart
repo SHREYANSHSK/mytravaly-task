@@ -1,27 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../core/constants/app_sizes.dart';
+import '../../../core/widgets/search_property_card.dart';
 import '../bloc/search_bloc.dart';
 import '../bloc/search_event.dart';
 import '../bloc/search_state.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/widgets/hotel_card.dart';
 
 class SearchResultsPage extends StatefulWidget {
   final String query;
 
-  const SearchResultsPage({super.key, required this.query});
+  const SearchResultsPage({Key? key, required this.query}) : super(key: key);
 
   @override
   State<SearchResultsPage> createState() => _SearchResultsPageState();
 }
 
 class _SearchResultsPageState extends State<SearchResultsPage> {
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     context.read<SearchBloc>().add(SearchHotels(query: widget.query));
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<SearchBloc>().add(LoadMoreSearchResults());
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.9);
   }
 
   @override
@@ -34,31 +55,52 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
         builder: (context, state) {
           if (state is SearchLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is SearchLoaded) {
-            if (state.properties.isEmpty) {
+          } else if (state is SearchLoaded || state is SearchLoadingMore) {
+            final properties = state is SearchLoaded
+                ? state.properties
+                : (state as SearchLoadingMore).properties;
+
+            final hasMore = state is SearchLoaded ? state.hasMore : false;
+
+            if (properties.isEmpty) {
               return _buildEmptyState();
             }
 
             return ListView.builder(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: state.properties.length + 1,
+              itemCount: properties.length + 2, // +1 for header, +1 for loader
               itemBuilder: (context, index) {
                 if (index == 0) {
+                  return _buildHeader(properties.length, hasMore);
+                }
+
+                if (index <= properties.length) {
+                  final property = properties[index - 1];
+                  return SearchPropertyCard(property: property);
+                } else {
+                  // Show loading indicator at bottom when loading more
+                  if (state is SearchLoadingMore || hasMore) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      '${state.properties.length} properties found',
-                      style: TextStyle(
-                        fontSize: AppSizes.f18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Center(
+                      child: Text(
+                        'No more results',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   );
                 }
-
-                final property = state.properties[index - 1];
-                return HotelCard(property: property);
               },
             );
           } else if (state is SearchError) {
@@ -66,6 +108,45 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           }
           return const SizedBox();
         },
+      ),
+    );
+  }
+
+  Widget _buildHeader(int count, bool hasMore) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$count ${count == 1 ? 'property' : 'properties'} found',
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          if (hasMore)
+            const SizedBox(height: 4),
+          if (hasMore)
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Scroll down to load more results',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
@@ -80,12 +161,12 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
             size: 80,
             color: AppColors.textSecondary.withOpacity(0.5),
           ),
-          SizedBox(height: AppSizes.h16),
-          Text(
+          const SizedBox(height: 16),
+          const Text(
             AppStrings.noResults,
-            style: TextStyle(fontSize: AppSizes.f18, color: AppColors.textSecondary),
+            style: TextStyle(fontSize: 18, color: AppColors.textSecondary),
           ),
-          SizedBox(height: AppSizes.h8),
+          const SizedBox(height: 8),
           Text(
             'Try searching with different keywords',
             style: TextStyle(
@@ -93,15 +174,11 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
               color: AppColors.textSecondary.withOpacity(0.7),
             ),
           ),
-          SizedBox(height: AppSizes.h24),
+          const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back),
             label: const Text('Go Back'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
           ),
         ],
       ),
@@ -116,32 +193,28 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.error_outline, size: 80, color: AppColors.error),
-            SizedBox(height: AppSizes.h16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               AppStrings.errorOccurred,
               style: TextStyle(
-                fontSize: AppSizes.f18,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSizes.h8),
+            const SizedBox(height: 8),
             Text(
               message,
               style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: AppSizes.h24),
+            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
                 context.read<SearchBloc>().add(SearchHotels(query: widget.query));
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         ),

@@ -90,24 +90,48 @@ class ApiService {
   }
 
   // Get Search Results API
-  Future<SearchResponse> getSearchResults({
-    required String query,
-    String? checkIn,
-    String? checkOut,
-    int? guests,
+  Future<SearchResultResponse> getSearchResults({
+    required String searchQuery,
+    String searchType = 'hotelIdSearch',
+    String checkIn = '2026-07-11',
+    String checkOut = '2026-07-12',
+    int rooms = 1,
+    int adults = 2,
+    int children = 0,
+    List<String> accommodation = const ['all',"hotel"],
+    List<String> excludedSearchTypes = const ['street'],
+    String highPrice = '3000000',
+    String lowPrice = '0',
+    int limit = 5,
+    List<String> preloaderList = const [],
     String currency = 'INR',
+    int rid = 0,
   }) async {
     try {
       final body = {
-        'action': 'search',
-        'search': {
-          'query': query,
-          'checkIn': checkIn,
-          'checkOut': checkOut,
-          'guests': guests,
-          'currency': currency,
+        'action': 'getSearchResultListOfHotels',
+        'getSearchResultListOfHotels': {
+          'searchCriteria': {
+            'checkIn': checkIn,
+            'checkOut': checkOut,
+            'rooms': rooms,
+            'adults': adults,
+            'children': children,
+            'searchType': searchType,
+            'searchQuery': [searchQuery],
+            'accommodation': accommodation,
+            'arrayOfExcludedSearchType': excludedSearchTypes,
+            'highPrice': highPrice,
+            'lowPrice': lowPrice,
+            'limit': limit,
+            'preloaderList': preloaderList,
+            'currency': currency,
+            'rid': rid,
+          },
         },
       };
+
+      print('Search API Request Body: ${json.encode(body)}');
 
       final response = await _client.post(
         Uri.parse(ApiEndpoints.BASE_URL),
@@ -115,14 +139,18 @@ class ApiService {
         body: json.encode(body),
       );
 
+      print('Search API Response Status: ${response.statusCode}');
+      print('Search API Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        return SearchResponse.fromJson(jsonData);
+        return SearchResultResponse.fromJson(jsonData);
       } else {
-        throw Exception('Failed to search: ${response.statusCode}');
+        throw Exception('Failed to search: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      throw Exception('Error searching: $e');
+      print('Error searching properties: $e');
+      throw Exception('Error searching properties: $e');
     }
   }
 

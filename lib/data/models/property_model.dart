@@ -220,3 +220,120 @@ class PropertyAddress extends Equatable {
   @override
   List<Object?> get props => [street, city, state, country, zipcode, latitude, longitude];
 }
+
+class SearchProperty extends Equatable {
+  final String propertyCode;
+  final String propertyName;
+  final PropertyImage propertyImage;
+  final String propertytype;
+  final int propertyStar;
+  final PropertyPolicies? policies;
+  final PropertyAddress address;
+  final String propertyUrl;
+  final String roomName;
+  final int numberOfAdults;
+  final PriceInfo markedPrice;
+  final PriceInfo propertyMaxPrice;
+  final PriceInfo propertyMinPrice;
+  final GoogleReview? googleReview;
+  final bool isFavorite;
+  final SimplPriceList? simplPriceList;
+
+  const SearchProperty({
+    required this.propertyCode,
+    required this.propertyName,
+    required this.propertyImage,
+    required this.propertytype,
+    required this.propertyStar,
+    this.policies,
+    required this.address,
+    required this.propertyUrl,
+    required this.roomName,
+    required this.numberOfAdults,
+    required this.markedPrice,
+    required this.propertyMaxPrice,
+    required this.propertyMinPrice,
+    this.googleReview,
+    required this.isFavorite,
+    this.simplPriceList,
+  });
+
+  factory SearchProperty.fromJson(Map<String, dynamic> json) {
+    return SearchProperty(
+      propertyCode: json['propertyCode']?.toString() ?? '',
+      propertyName: json['propertyName']?.toString() ?? 'Unknown Property',
+      propertyImage: PropertyImage.fromJson(json['propertyImage'] ?? {}),
+      propertytype: json['propertytype']?.toString() ?? 'Hotel',
+      propertyStar: json['propertyStar'] ?? 0,
+      policies: json['propertyPoliciesAndAmmenities'] != null
+          ? PropertyPolicies.fromJson(json['propertyPoliciesAndAmmenities'])
+          : null,
+      address: PropertyAddress.fromJson(json['propertyAddress'] ?? {}),
+      propertyUrl: json['propertyUrl']?.toString() ?? '',
+      roomName: json['roomName']?.toString() ?? '',
+      numberOfAdults: json['numberOfAdults'] ?? 2,
+      markedPrice: PriceInfo.fromJson(json['markedPrice'] ?? {}),
+      propertyMaxPrice: PriceInfo.fromJson(json['propertyMaxPrice'] ?? {}),
+      propertyMinPrice: PriceInfo.fromJson(json['propertyMinPrice'] ?? {}),
+      googleReview: json['googleReview'] != null
+          ? GoogleReview.fromJson(json['googleReview'])
+          : null,
+      isFavorite: json['isFavorite'] ?? false,
+      simplPriceList: json['simplPriceList'] != null
+          ? SimplPriceList.fromJson(json['simplPriceList'])
+          : null,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    propertyCode, propertyName, propertyImage, propertytype, propertyStar,
+    policies, address, propertyUrl, roomName, numberOfAdults, markedPrice,
+    propertyMaxPrice, propertyMinPrice, googleReview, isFavorite, simplPriceList
+  ];
+}
+
+class PropertyImage extends Equatable {
+  final String fullUrl;
+  final String location;
+  final String imageName;
+
+  const PropertyImage({
+    required this.fullUrl,
+    required this.location,
+    required this.imageName,
+  });
+
+  factory PropertyImage.fromJson(Map<String, dynamic> json) {
+    return PropertyImage(
+      fullUrl: json['fullUrl']?.toString() ?? '',
+      location: json['location']?.toString() ?? '',
+      imageName: json['imageName']?.toString() ?? '',
+    );
+  }
+
+  @override
+  List<Object?> get props => [fullUrl, location, imageName];
+}
+
+class SimplPriceList extends Equatable {
+  final PriceInfo simplPrice;
+  final double originalPrice;
+
+  const SimplPriceList({
+    required this.simplPrice,
+    required this.originalPrice,
+  });
+
+  factory SimplPriceList.fromJson(Map<String, dynamic> json) {
+    return SimplPriceList(
+      simplPrice: PriceInfo.fromJson(json['simplPrice'] ?? {}),
+      originalPrice: json['originalPrice'] != null
+          ? double.tryParse(json['originalPrice'].toString()) ?? 0.0
+          : 0.0,
+    );
+  }
+
+  @override
+  List<Object?> get props => [simplPrice, originalPrice];
+}

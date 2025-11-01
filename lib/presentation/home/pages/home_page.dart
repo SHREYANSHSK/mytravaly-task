@@ -266,10 +266,6 @@ class _HomePageState extends State<HomePage> {
               },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         ),

@@ -7,4 +7,5 @@ class AppStrings {
   static const String errorOccurred = 'An error occurred';
   static const String featuredHotels = 'Popular Stays';
   static const String perNight = '/night';
+  static const String freeCancellation = 'Free Cancellation';
 }

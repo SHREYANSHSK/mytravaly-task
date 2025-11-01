@@ -13,8 +13,8 @@ class LoadPopularStays extends HomeEvent {
   final String country;
 
   const LoadPopularStays({
-    this.city = 'Jamshedpur',
-    this.state = 'Jharkhand',
+    this.city = 'jaipur',
+    this.state = 'rajasthan',
     this.country = 'India',
   });
 

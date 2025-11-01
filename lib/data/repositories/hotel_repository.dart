@@ -16,8 +16,8 @@ class HotelRepository {
     String entityType = 'Any',
     String searchType = 'byCity',
     String country = 'India',
-    String state = 'Jharkhand',
-    String city = 'Jamshedpur',
+    String state = 'Rajasthan',
+    String city = 'Jaipur',
   }) async {
     return await _apiService.getPopularStays(
       limit: limit,
@@ -29,17 +29,25 @@ class HotelRepository {
     );
   }
 
-  Future<SearchResponse> searchHotels({
+  Future<SearchResultResponse> searchHotels({
     required String query,
-    String? checkIn,
-    String? checkOut,
-    int? guests,
+    String checkIn = '2026-07-11',
+    String checkOut = '2026-07-12',
+    int rooms = 2,
+    int adults = 2,
+    int children = 0,
+    int limit = 5,
+    List<String> excludedHotels = const [],
   }) async {
     return await _apiService.getSearchResults(
-      query: query,
+      searchQuery: query,
       checkIn: checkIn,
       checkOut: checkOut,
-      guests: guests,
+      rooms: rooms,
+      adults: adults,
+      children: children,
+      limit: limit,
+      preloaderList: excludedHotels,
     );
   }
 }
