@@ -10,6 +10,8 @@ class Hotel extends Equatable {
   final String? description;
   final double? rating;
   final String? address;
+  final double? price;
+  final String? currency;
 
   const Hotel({
     required this.id,
@@ -21,6 +23,8 @@ class Hotel extends Equatable {
     this.description,
     this.rating,
     this.address,
+    this.price,
+    this.currency,
   });
 
   factory Hotel.fromJson(Map<String, dynamic> json) {
@@ -34,9 +38,11 @@ class Hotel extends Equatable {
       description: json['description']?.toString(),
       rating: json['rating'] != null ? double.tryParse(json['rating'].toString()) : null,
       address: json['address']?.toString(),
+      price: json['price'] != null ? double.tryParse(json['price'].toString()) : null,
+      currency: json['currency']?.toString() ?? 'USD',
     );
   }
 
   @override
-  List<Object?> get props => [id, name, city, state, country, imageUrl, description, rating, address];
+  List<Object?> get props => [id, name, city, state, country, imageUrl, description, rating, address, price, currency];
 }

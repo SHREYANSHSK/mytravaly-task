@@ -1,34 +1,27 @@
 import 'package:equatable/equatable.dart';
-import 'hotel_model.dart';
+import 'property_model.dart';
 
 class SearchResponse extends Equatable {
-  final List<Hotel> hotels;
+  final List<Property> properties;
   final int totalCount;
-  final int currentPage;
-  final int totalPages;
-  final bool hasMore;
+  final bool status;
 
   const SearchResponse({
-    required this.hotels,
+    required this.properties,
     required this.totalCount,
-    required this.currentPage,
-    required this.totalPages,
-    required this.hasMore,
+    required this.status,
   });
 
   factory SearchResponse.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? json;
-    final List<dynamic> hotelsJson = data['hotels'] ?? data['results'] ?? [];
+    final List<dynamic> dataList = json['data'] ?? [];
 
     return SearchResponse(
-      hotels: hotelsJson.map((hotel) => Hotel.fromJson(hotel)).toList(),
-      totalCount: data['total_count'] ?? data['total'] ?? hotelsJson.length,
-      currentPage: data['current_page'] ?? data['page'] ?? 1,
-      totalPages: data['total_pages'] ?? data['pages'] ?? 1,
-      hasMore: data['has_more'] ?? false,
+      properties: dataList.map((item) => Property.fromJson(item)).toList(),
+      totalCount: dataList.length,
+      status: json['status'] ?? false,
     );
   }
 
   @override
-  List<Object?> get props => [hotels, totalCount, currentPage, totalPages, hasMore];
+  List<Object?> get props => [properties, totalCount, status];
 }

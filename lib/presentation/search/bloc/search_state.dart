@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../../data/models/hotel_model.dart';
+import '../../../data/models/property_model.dart';
 
 abstract class SearchState extends Equatable {
   const SearchState();
@@ -13,30 +13,16 @@ class SearchInitial extends SearchState {}
 class SearchLoading extends SearchState {}
 
 class SearchLoaded extends SearchState {
-  final List<Hotel> hotels;
-  final bool hasMore;
-  final int currentPage;
+  final List<Property> properties;
   final String query;
 
   const SearchLoaded({
-    required this.hotels,
-    required this.hasMore,
-    required this.currentPage,
+    required this.properties,
     required this.query,
   });
 
   @override
-  List<Object?> get props => [hotels, hasMore, currentPage, query];
-}
-
-class SearchLoadingMore extends SearchState {
-  final List<Hotel> hotels;
-  final String query;
-
-  const SearchLoadingMore({required this.hotels, required this.query});
-
-  @override
-  List<Object?> get props => [hotels, query];
+  List<Object?> get props => [properties, query];
 }
 
 class SearchError extends SearchState {

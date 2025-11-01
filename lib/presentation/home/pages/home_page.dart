@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/hotel_bloc.dart';
-import '../bloc/hotel_event.dart';
-import '../bloc/hotel_state.dart';
+import 'package:mytravaly_task/presentation/autocomplete/bloc/autocomplete_boc.dart';
+import 'package:mytravaly_task/routes/app_routes_name.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
+import '../bloc/home_state.dart';
+import '../../autocomplete/bloc/autocomplete_event.dart';
+import '../../autocomplete/bloc/autocomplete_state.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../routes/app_routes.dart';
+import '../../../core/widgets/hotel_card.dart';
+import '../../../core/utils/debouncer.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,24 +21,55 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final Debouncer _debouncer = Debouncer(milliseconds: 500);
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _showSuggestions = false;
 
   @override
   void initState() {
     super.initState();
-    context.read<HotelBloc>().add(LoadSampleHotels());
+    context.read<HomeBloc>().add(const LoadPopularStays());
+    _searchController.addListener(_onSearchTextChanged);
+    _searchFocusNode.addListener(_onFocusChanged);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
+    _debouncer.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
-  void _performSearch() {
-    final query = _searchController.text.trim();
-    if (query.isNotEmpty) {
-      Navigator.pushNamed(context, AppRoutes.searchResults, arguments: query);
+  void _onSearchTextChanged() {
+    final query = _searchController.text;
+    if (query.isEmpty) {
+      context.read<AutocompleteBloc>().add(ClearSuggestions());
+      setState(() => _showSuggestions = false);
+    } else {
+      _debouncer.run(() {
+        context.read<AutocompleteBloc>().add(SearchQueryChanged(query));
+        setState(() => _showSuggestions = true);
+      });
     }
+  }
+
+  void _onFocusChanged() {
+    if (!_searchFocusNode.hasFocus) {
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          setState(() => _showSuggestions = false);
+        }
+      });
+    }
+  }
+
+  void _performSearch(String query) {
+    _searchFocusNode.unfocus();
+    setState(() => _showSuggestions = false);
+    Navigator.pushNamed(context, AppRoutesName.searchResults, arguments: query);
   }
 
   @override
@@ -48,24 +84,34 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSearchBar(),
-          Expanded(
-            child: BlocBuilder<HotelBloc, HotelState>(
-              builder: (context, state) {
-                if (state is HotelLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is HotelLoaded) {
-                  return _buildHotelList(state.hotels);
-                } else if (state is HotelError) {
-                  return Center(child: Text(state.message));
-                }
-                return const SizedBox();
-              },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          context.read<HomeBloc>().add(RefreshPopularStays());
+        },
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                _buildSearchBar(),
+                Expanded(
+                  child: BlocBuilder<HomeBloc, HomeState>(
+                    builder: (context, state) {
+                      if (state is HomeLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (state is HomeLoaded) {
+                        return _buildPropertyList(state.properties);
+                      } else if (state is HomeError) {
+                        return _buildErrorState(state.message);
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            if (_showSuggestions) _buildSuggestionsOverlay(),
+          ],
+        ),
       ),
     );
   }
@@ -76,13 +122,19 @@ class _HomePageState extends State<HomePage> {
       color: AppColors.surface,
       child: TextField(
         controller: _searchController,
+        focusNode: _searchFocusNode,
         decoration: InputDecoration(
           hintText: AppStrings.searchPlaceholder,
           prefixIcon: const Icon(Icons.search, color: AppColors.primary),
-          suffixIcon: IconButton(
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
             icon: const Icon(Icons.clear),
-            onPressed: () => _searchController.clear(),
-          ),
+            onPressed: () {
+              _searchController.clear();
+              context.read<AutocompleteBloc>().add(ClearSuggestions());
+            },
+          )
+              : null,
           filled: true,
           fillColor: AppColors.background,
           border: OutlineInputBorder(
@@ -90,116 +142,141 @@ class _HomePageState extends State<HomePage> {
             borderSide: BorderSide.none,
           ),
         ),
-        onSubmitted: (_) => _performSearch(),
+        onSubmitted: _performSearch,
       ),
     );
   }
 
-  Widget _buildHotelList(List<dynamic> hotels) {
+  Widget _buildSuggestionsOverlay() {
+    return Positioned(
+      top: 80,
+      left: 16,
+      right: 16,
+      child: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 300),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: BlocBuilder<AutocompleteBloc, AutocompleteState>(
+            builder: (context, state) {
+              if (state is AutocompleteLoading) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              } else if (state is AutocompleteLoaded) {
+                if (state.suggestions.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('No suggestions found'),
+                  );
+                }
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: state.suggestions.length,
+                  itemBuilder: (context, index) {
+                    final suggestion = state.suggestions[index];
+                    return ListTile(
+                      leading: Icon(
+                        _getIconForType(suggestion.type),
+                        color: AppColors.primary,
+                      ),
+                      title: Text(suggestion.text),
+                      subtitle: suggestion.subtitle != null
+                          ? Text(suggestion.subtitle!)
+                          : null,
+                      onTap: () => _performSearch(suggestion.text),
+                    );
+                  },
+                );
+              }
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getIconForType(String type) {
+    switch (type.toLowerCase()) {
+      case 'city':
+        return Icons.location_city;
+      case 'country':
+        return Icons.public;
+      case 'state':
+        return Icons.map;
+      case 'hotel':
+        return Icons.hotel;
+      default:
+        return Icons.search;
+    }
+  }
+
+  Widget _buildPropertyList(List<dynamic> properties) {
+    if (properties.isEmpty) {
+      return const Center(
+        child: Text('No properties available'),
+      );
+    }
+
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: hotels.length,
+      itemCount: properties.length + 1,
       itemBuilder: (context, index) {
-        final hotel = hotels[index];
-        return _buildHotelCard(hotel);
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              AppStrings.featuredHotels,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          );
+        }
+
+        final property = properties[index - 1];
+        return HotelCard(property: property);
       },
     );
   }
 
-  Widget _buildHotelCard(dynamic hotel) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.network(
-              hotel.imageUrl ?? 'https://via.placeholder.com/400x200',
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  color: AppColors.divider,
-                  child: const Icon(Icons.hotel, size: 64),
-                );
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 80, color: AppColors.error),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: const TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<HomeBloc>().add(const LoadPopularStays());
               },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        hotel.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                    if (hotel.rating != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              hotel.rating.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${hotel.city}, ${hotel.state}, ${hotel.country}',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,6 @@
-class ApiConstants {
-  static const String searchEndpoint = '/search';
+
+class AppRoutesName {
+  static const String signIn = '/';
+  static const String home = '/home';
+  static const String searchResults = '/search-results';
 }
